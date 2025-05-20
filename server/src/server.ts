@@ -1,23 +1,39 @@
-const forceDatabaseRefresh = false;
-
+import express from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
+
+import db from './config/connection.js';
+import authRouter from './routes/auth-routes.js';
+import apiRouter  from './routes/api/index.js';
+
 dotenv.config();
 
-import express from 'express';
-import routes from './routes/index.js';
-import { sequelize } from './models/index.js';
+async function startServer() {
+  try {
+    // 1. Connect & sync your database
+    await db.sync();  
+    console.log('✅ Database connected and synced');
 
-const app = express();
-const PORT = process.env.PORT || 3001;
+    // 2. Create Express app
+    const app = express();
+    const PORT = parseInt(process.env.PORT || '3001', 10);
 
-// Serves static files in the entire client's dist folder
-app.use(express.static('../client/dist'));
+    // 3. Middleware: CORS + built-in body parsers
+    app.use(cors());
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
 
-app.use(express.json());
-app.use(routes);
+    // 4. Mount REST routes
+    app.use('/auth', authRouter);
+    app.use('/api', apiRouter);
 
-sequelize.sync({force: forceDatabaseRefresh}).then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is listening on port ${PORT}`);
-  });
-});
+    // 5. Start listening
+    app.listen(PORT, () => {
+      console.log(`🚀 Server listening on http://localhost:${PORT}`);
+    });
+  } catch (err) {
+    console.error('❌ Server failed to start:', err);
+  }
+}
+
+startServer();
