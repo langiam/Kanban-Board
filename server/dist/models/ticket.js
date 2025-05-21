@@ -1,6 +1,7 @@
 import { DataTypes, Model } from 'sequelize';
 export class Ticket extends Model {
 }
+// 3. Factory to initialize it with a Sequelize instance
 export function TicketFactory(sequelize) {
     Ticket.init({
         id: {
@@ -30,3 +31,5 @@ export function TicketFactory(sequelize) {
     });
     return Ticket;
 }
+// 4. Default‐export so other files can do `import Ticket from '../models/ticket.js'`
+export default Ticket;

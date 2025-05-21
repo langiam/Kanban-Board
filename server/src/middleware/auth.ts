@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload as DefaultPayload } from 'jsonwebtoken';
 
-interface JwtPayload {
-  username: string;
+interface JwtPayload extends DefaultPayload {
+  userId: number;
 }
 
 declare module 'express-serve-static-core' {
@@ -23,17 +23,24 @@ export const authenticateToken = (
     return;
   }
 
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    res.status(401).json({ message: 'Missing token' });
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    res.status(401).json({ message: 'Malformed Authorization header' });
+    return;
+  }
+
+  const token = parts[1];
+  const secret = process.env.JWT_SECRET_KEY;
+  if (!secret) {
+    console.error('❌ JWT_SECRET_KEY is not defined in environment');
+    res.status(500).json({ message: 'Internal server error' });
     return;
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+    const decoded = jwt.verify(token, secret) as JwtPayload;
     req.user = decoded;
-    next();
-    return;
+    return next();
   } catch (err) {
     res.status(403).json({ message: 'Invalid or expired token' });
     return;
