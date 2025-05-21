@@ -1,30 +1,48 @@
-import { JwtPayload, jwtDecode } from 'jwt-decode';
+// client/src/utils/auth.ts
+import { jwtDecode, JwtPayload } from 'jwt-decode';
+
+interface DecodedToken extends JwtPayload {
+  userId: number;
+}
 
 class AuthService {
-  getProfile() {
-    // TODO: return the decoded token
+  getProfile(): DecodedToken | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      return jwtDecode<DecodedToken>(token);
+    } catch {
+      return null;
+    }
   }
 
-  loggedIn() {
-    // TODO: return a value that indicates if the user is logged in
-  }
-  
-  isTokenExpired(token: string) {
-    // TODO: return a value that indicates if the token is expired
+  loggedIn(): boolean {
+    const token = this.getToken();
+    return !!token && !this.isTokenExpired(token);
   }
 
-  getToken(): string {
-    // TODO: return the token
+  isTokenExpired(token: string): boolean {
+    try {
+      const { exp } = jwtDecode<DecodedToken>(token);
+      if (typeof exp !== "number") return false;
+      return Date.now() >= exp * 1000;
+    } catch {
+      return true;
+    }
   }
 
-  login(idToken: string) {
-    // TODO: set the token to localStorage
-    // TODO: redirect to the home page
+  getToken(): string | null {
+    return localStorage.getItem("kanban_token");
   }
 
-  logout() {
-    // TODO: remove the token from localStorage
-    // TODO: redirect to the login page
+  login(idToken: string): void {
+    localStorage.setItem("kanban_token", idToken);
+    window.location.href = "/board";
+  }
+
+  logout(): void {
+    localStorage.removeItem("kanban_token");
+    window.location.href = "/login";
   }
 }
 
