@@ -1,6 +1,5 @@
 // server/src/schemas/index.ts
-import { gql } from 'apollo-server-express';
-// 1) Define your schema
+import { gql } from 'graphql-tag';
 export const typeDefs = gql `
   type Ticket {
     id: ID!
@@ -21,18 +20,19 @@ export const typeDefs = gql `
     user(id: ID!): User
   }
 `;
-// 2) Wire up your resolvers (stubbed here for example)
 export const resolvers = {
     Query: {
-        tickets: async (_parent, _args, { db }) => {
-            // e.g. return db.models.Ticket.findAll();
+        tickets: async (_parent, _args, _context) => {
             return [];
         },
-        ticket: async (_parent, { id }, { db }) => {
-            // e.g. return db.models.Ticket.findByPk(id);
+        ticket: async (_parent, _args, _context) => {
             return null;
         },
-        users: async (_parent, _args, { db }) => [],
-        user: async (_parent, { id }, { db }) => null,
+        users: async (_parent, _args, _context) => {
+            return [];
+        },
+        user: async (_parent, _args, _context) => {
+            return null;
+        },
     },
 };
